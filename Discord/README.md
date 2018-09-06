@@ -1,0 +1,1 @@
+Contains different bot implementations for [Discord](https://discordapp.com)
