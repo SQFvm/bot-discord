@@ -36,7 +36,7 @@ def execsqf(txt, note):
     buffer = create_string_buffer(b'\000', 1990)
     print("Executing '{}' {}".format(txt, note))
     libsqfvm.sqfvm_exec(txt.encode('utf-8'), buffer, 1990)
-    str = buffer.raw.decode('utf-8').strip(b'\000')
+    str = buffer.value.decode('utf-8').strip()
     print(str)
     return str
 
