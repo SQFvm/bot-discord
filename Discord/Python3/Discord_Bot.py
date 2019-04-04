@@ -9,6 +9,7 @@ import binascii
 
 
 def init_libsqfvm():
+    global path
     path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     path = "{}/sqfvm-cpp/libsqfvm.so".format(path)
     print('Loading libsqfvm from {}'.format(path))
@@ -63,7 +64,7 @@ class MyClient(discord.Client):
                     await tmp.edit(content="```Pulling latest sources...```")
                     subprocess.call(['git', 'pull'])
                     await tmp.edit(content="```Building libsqfvm...```")
-                    if subprocess.call(['make', 'libsqfvm', '-C' ,'../../../vm', '-j', '6']):
+                    if subprocess.call(['make', 'libsqfvm', '-j', '6', '-C' , path]):
                         await tmp.edit(content="```!BUILD FAILED!```")
                         return
                     await tmp.edit(content="```Loading libsqfvm...```")
