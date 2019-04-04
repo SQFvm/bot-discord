@@ -10,11 +10,13 @@ import binascii
 
 def init_libsqfvm():
     global path
-    path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    path = "{}/sqfvm-cpp/libsqfvm.so".format(path)
-    print('Loading libsqfvm from {}'.format(path))
+    path = ""
+    with open('vmpath', 'r') as f:
+        path = f.read().strip()
+    libpath = "{}/libsqfvm.so".format(path)
+    print('Loading libsqfvm from {}'.format(libpath))
     global libsqfvm
-    libsqfvm = CDLL(path)
+    libsqfvm = CDLL(libpath)
     libsqfvm.sqfvm_init.restype = None
     libsqfvm.sqfvm_init.argtypes = [c_ulonglong]
     libsqfvm.sqfvm_exec.restype = None
@@ -27,8 +29,8 @@ def init_libsqfvm():
     libsqfvm.sqfvm_init(1000000)
     print('Loading arma config')
     file = ""
-    with open('arma.cpp', 'r') as file:
-        file = file.read().strip()
+    with open('arma.cpp', 'r') as f:
+        file = f.read().strip()
     if file != "":
         print('calling sqfvm_loadconfig with arma.cpp')
         libsqfvm.sqfvm_loadconfig(file.encode('utf-8'))
