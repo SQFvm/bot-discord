@@ -93,7 +93,7 @@ class MyClient(discord.Client):
                         tmp = await message.channel.send("```{}```".format(val))
                     except Exception as e:
                         await message.channel.send("```!DISCORD ERROR!\n{}```".format(e))
-                elif message.content.startswith('<@{}>'.format(self.user.id)):
+                elif message.content.startswith('<@!{}>'.format(self.user.id)):
                     val = execsqf(message.content.replace('<@{}>'.format(self.user.id), ""), self.outputbuffer, 1990, "from user {}#{}".format(message.author.name, message.author.id))
                     try:
                         tmp = await message.channel.send("```sqf\n{}```".format(val))
@@ -112,7 +112,7 @@ class MyClient(discord.Client):
                         tmp = await message.channel.send("```{}```".format(val))
                     except Exception as e:
                         await message.channel.send("```!DISCORD ERROR!\n{}```".format(e))
-                elif message.content.startswith('<@{}>'.format(self.user.id)):
+                elif message.content.startswith('<@!{}>'.format(self.user.id)):
                     val = execsqf(message.content.replace('<@{}>'.format(self.user.id), ""), "from user {}#{}".format(message.author.name, message.author.id))
                     try:
                         tmp = await message.channel.send("```sqf\n{}```".format(val))
