@@ -15,3 +15,4 @@ ADMINS = [
 ]
 
 VMPATH = os.path.join('..', 'SQFvm')
+BUILD_ENV = {}  # {'CC': 'gcc-8', 'CXX':'g++-8'}
