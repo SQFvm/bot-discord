@@ -24,7 +24,7 @@ You're now ready to run the bot.
 
 # Server deployment
 
-Just run `start_production.sh`
+    ./start_production.sh
 
 # Additional notes
 

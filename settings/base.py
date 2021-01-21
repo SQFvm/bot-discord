@@ -2,6 +2,8 @@
 # Bots settings
 ################################################################################
 
+import os
+
 # Copy this whole structure and replace with your values, in local.py
 SQF_BOT = {
     'bot_token': '<Set this value to your bot token in local.py>',
@@ -9,5 +11,7 @@ SQF_BOT = {
 }
 
 ADMINS = [
-    105784568346324992,
+    105784568346324992,  # X39
 ]
+
+VMPATH = os.path.join('..', 'SQFvm')
