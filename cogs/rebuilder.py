@@ -28,14 +28,14 @@ class RebuilderCog(commands.Cog):
         self.bot = bot
 
     def git_pull(self, branch='master'):
-        full_branch = branch if '/' in branch else 'origin/{}'.format(branch)
+        remote_branch = branch if '/' in branch else 'origin/{}'.format(branch)
 
-        # Note: this is the 100% correct way of updating a repository
+        # Note: this is the 100% correct way of safely updating a repository
         update_commands = [
             ['git', 'reset', '--hard'],
             ['git', 'fetch', '--all'],
             ['git', 'checkout', branch],
-            ['git', 'reset', '--hard', full_branch],
+            ['git', 'reset', '--hard', remote_branch],
             ['git', 'pull'],
         ]
 
