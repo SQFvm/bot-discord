@@ -10,6 +10,7 @@ class SQFBot(BotBase):
     startup_extensions = [
         'cogs.rebuilder',
         'cogs.restart',
+        'cogs.interpreter',
     ]
 
     def __init__(self, bot_data):
