@@ -14,6 +14,18 @@ class InterpreterCog(commands.Cog):
     async def execute_sqf(self, code):
         return '[DUMMY RETURN VALUE]'
 
+    def escape_markdown(self, text):
+        prefix = '```sqf\n'
+        postfix = '```'
+        ellipsis = '(...)'
+
+        retval = '{}{}{}'.format(prefix, text, postfix)
+        if len(retval) > 2000:
+            text = text[:2000 - len(ellipsis)] + ellipsis  # "longtexthere" -> "longte(...)"
+            retval = '{}{}{}'.format(prefix, text, postfix)
+
+        return retval
+
     def strip_mentions_and_markdown(self, message):
         content = message.content.strip()
 
@@ -40,7 +52,7 @@ class InterpreterCog(commands.Cog):
 
         async with ctx.typing():
             sqf_result = await self.execute_sqf(code_to_execute)
-        await ctx.channel.send('```sqf\n{}```'.format(sqf_result))
+        await ctx.channel.send(self.escape_markdown(sqf_result))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -67,7 +79,7 @@ class InterpreterCog(commands.Cog):
         if code_to_execute:
             async with message.channel.typing():
                 sqf_result = await self.execute_sqf(code_to_execute)
-            await message.channel.send('```sqf\n{}```'.format(sqf_result))
+            await message.channel.send(self.escape_markdown(sqf_result))
 
 
 def setup(bot):
