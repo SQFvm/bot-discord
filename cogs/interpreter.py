@@ -16,18 +16,21 @@ class InterpreterCog(commands.Cog):
 
     def escape_markdown(self, text):
         prefix = '```sqf\n'
-        postfix = '```'
+        suffix = '```'
         ellipsis = '(...)'
 
-        retval = '{}{}{}'.format(prefix, text, postfix)
+        retval = '{}{}{}'.format(prefix, text, suffix)
         if len(retval) > 2000:
             text = text[:2000 - len(ellipsis)] + ellipsis  # "longtexthere" -> "longte(...)"
-            retval = '{}{}{}'.format(prefix, text, postfix)
+            retval = '{}{}{}'.format(prefix, text, suffix)
 
         return retval
 
-    def strip_mentions_and_markdown(self, message):
+    def strip_mentions_and_markdown(self, message, strip_command_marker=False):
         content = message.content.strip()
+
+        if strip_command_marker and content.startswith('!sqf'):
+            content = content[5:]
 
         if self.bot.user.id in message.raw_mentions:
             content = content.replace('<@!{}>'.format(self.bot.user.id), '')
@@ -48,7 +51,7 @@ class InterpreterCog(commands.Cog):
         - Enclose your message in an ``'sqf block
           if the channel name starts with "sqf"
         """
-        code_to_execute = self.strip_mentions_and_markdown(ctx)
+        code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
 
         async with ctx.typing():
             sqf_result = await self.execute_sqf(code_to_execute)
@@ -56,6 +59,15 @@ class InterpreterCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        """
+        Check if this message needs to be sqf-interpreted
+        Ignore messages from bots or valid commands
+        Interpret if the message:
+        - Is in a DM channel
+        - Mentions the bot
+        - Is in a channel named "sqf..." and is in an sqf block
+        """
+
         # Ignore messages coming from bots
         if message.author.bot:
             return
