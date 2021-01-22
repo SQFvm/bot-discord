@@ -3,12 +3,12 @@ import logging
 
 from discord_base import create_bot, get_bots
 
-logging.basicConfig(level=logging.INFO)
-
+FORMAT = '%(asctime)-15s:%(levelname)s:%(name)s: %(message)s'
+logging.basicConfig(level=logging.INFO, format=FORMAT)
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler.setFormatter(logging.Formatter(FORMAT))
 logger.addHandler(handler)
 
 import asyncio
