@@ -15,4 +15,5 @@ ADMINS = [
 ]
 
 VMPATH = os.path.join('..', 'SQFvm')
+SQFVM_LIB_PATH = os.path.join(VMPATH, 'libcsqfvm.so')
 BUILD_ENV = {}  # {'CC': 'gcc-8', 'CXX':'g++-8'}
