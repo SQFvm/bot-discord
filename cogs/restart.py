@@ -9,7 +9,7 @@ from discord_base import get_bots
 logger = logging.getLogger('discord.' + __name__)
 
 
-class RestartCog(commands.Cog):
+class Restart(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,4 +37,4 @@ class RestartCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(RestartCog(bot))
+    bot.add_cog(Restart(bot))

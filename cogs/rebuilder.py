@@ -23,7 +23,7 @@ class FancyProgress:
         return '```\n' + '\n'.join(self.messages) + '```'
 
 
-class RebuilderCog(commands.Cog):
+class Rebuilder(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -101,4 +101,4 @@ class RebuilderCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(RebuilderCog(bot))
+    bot.add_cog(Rebuilder(bot))

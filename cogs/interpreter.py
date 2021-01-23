@@ -6,7 +6,7 @@ from discord.ext import commands
 logger = logging.getLogger('discord.' + __name__)
 
 
-class InterpreterCog(commands.Cog):
+class Interpreter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.interpreter_enabled = True
@@ -95,4 +95,4 @@ class InterpreterCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(InterpreterCog(bot))
+    bot.add_cog(Interpreter(bot))
