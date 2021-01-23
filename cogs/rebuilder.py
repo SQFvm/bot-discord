@@ -49,7 +49,7 @@ class RebuilderCog(commands.Cog):
         subprocess.run(['make', 'clean'], check=True, cwd=settings.VMPATH, env=new_env)
 
     def build_sqfvm(self):
-        subprocess.run(['make', 'libsqfvm', '-j', '6'], check=True, cwd=settings.VMPATH)
+        subprocess.run(['make', 'libcsqfvm', '-j', '6'], check=True, cwd=settings.VMPATH)
 
 
     @commands.command()
