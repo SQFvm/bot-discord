@@ -62,7 +62,7 @@ class Rebuilder(commands.Cog):
     @commands.command()
     @checks.only_admins()
     async def rebuild(self, ctx):
-        """Update and rebuild SQFvm"""
+        """Update and rebuild SQF-VM"""
         progress = FancyProgress()
 
         async def _run_asynchronously(message_text, sync_function, *sync_args):
@@ -78,7 +78,7 @@ class Rebuilder(commands.Cog):
                 return False
             return True
 
-        message = await ctx.channel.send(progress.next_state('Unloading SQFvm...'))
+        message = await ctx.channel.send(progress.next_state('Unloading SQF-VM...'))
 
         try:
             async with ctx.typing():
@@ -103,18 +103,18 @@ class Rebuilder(commands.Cog):
                 if not await _run_asynchronously('Building...', self.build_sqfvm):
                     return
 
-                await message.edit(content=progress.next_state('Loading SQFvm...'))
+                await message.edit(content=progress.next_state('Loading SQF-VM...'))
                 self.bot.sqfvm.load()
 
                 if self.bot.sqfvm.ready():
-                    await message.edit(content=progress.next_state('SQFvm is ready!'))
+                    await message.edit(content=progress.next_state('SQF-VM is ready!'))
 
         except Exception as e:
             logger.exception('%s', e)
             await message.edit(content=progress.next_state('Error: ' + str(e)))
-            await ctx.channel.send('SQFvm has NOT been rebuilt correctly!')
+            await ctx.channel.send('SQF-VM has NOT been rebuilt correctly!')
         else:
-            await ctx.channel.send('SQFvm has been rebuilt!')
+            await ctx.channel.send('SQF-VM has been rebuilt!')
 
 
 def setup(bot):

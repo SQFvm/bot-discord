@@ -93,7 +93,7 @@ class SQFVMWrapper:
             data_out.append(message.decode('utf8'))
 
         if not self.ready():
-            return 'Error, SQFVM not loaded correctly'
+            return 'Error: SQF-VM not loaded correctly'
 
         code_bytes = code.encode('utf-8')
 
@@ -117,8 +117,8 @@ class Interpreter(commands.Cog):
         try:
             self.bot.sqfvm.load()
         except:
-            # Continue working because you can later call "!rebuild" to get SQFvm working again
-            logger.exception('Could not load SQFvm!')
+            # Continue working because you can later call "!rebuild" to get SQF-VM working again
+            logger.exception('Could not load SQF-VM!')
 
     async def execute_sqf(self, code):
         retval = await self.bot.sqfvm.call_sqf_async(code)
