@@ -129,6 +129,9 @@ class Interpreter(commands.Cog):
         suffix = '```'
         ellipsis = '(...)'
 
+        if text == '':
+            return '```\n```'  # Otherwise, Discord treats "sqf" as the message contents
+
         retval = '{}{}{}'.format(prefix, text, suffix)
         if len(retval) > 2000:
             text = text[:2000 - len(ellipsis)] + ellipsis  # "longtexthere" -> "longte(...)"
