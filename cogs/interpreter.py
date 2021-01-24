@@ -82,6 +82,34 @@ class SQFVMWrapper:
 
     # ==== / Wrappers =========================================================
 
+    sqfvm_error_codes = {
+        0: 'calling the SQF-VM instance was successful',
+        -1: 'the instance was null',
+        -2: 'preprocessing failed',
+        -3: 'parsing failed',
+        -4: 'the instance is already running',
+        -5: 'the provided type was invalid',
+        -6: 'the execution did not succeed',
+    }
+
+    sqfvm_user_caused_error_codes = {-2, -3, -6}
+
+    def get_error_message(self, code):
+        internal = 'SQF-VM encountered an internal error'
+        user_related = 'SQF-VM encountered an error while executing the code'
+
+        if code in self.sqfvm_user_caused_error_codes:
+            error_type = user_related
+        else:
+            error_type = internal
+
+        try:
+            message = '{}: {}'.format(error_type, self.sqfvm_error_codes[code])
+        except KeyError:
+            message = 'Unknown error! Error code: {}'.format(code)
+
+        return message
+
     def call_sqf(self, code: str, timeout=10):
         data_out = []
 
@@ -98,8 +126,15 @@ class SQFVMWrapper:
         code_bytes = code.encode('utf-8')
 
         instance = self._sqfvm_create_instance(None, callback, max_runtime_seconds=timeout)
-        self._sqfvm_call(instance, None, ord('s'), code_bytes, len(code_bytes))
+        if not instance:
+            return 'Error: SQF-VM could not create an instance'
+
+        retval = self._sqfvm_call(instance, None, ord('s'), code_bytes, len(code_bytes))
+
         self._sqfvm_destroy_instance(instance)
+
+        if retval != 0:
+            return '\n'.join(data_out) + '\nError: ' + self.get_error_message(retval)
 
         return '\n'.join(data_out)
 
@@ -121,8 +156,11 @@ class Interpreter(commands.Cog):
             logger.exception('Could not load SQF-VM!')
 
     async def execute_sqf(self, code):
-        retval = await self.bot.sqfvm.call_sqf_async(code)
-        return str(retval)
+        if self.bot.sqfvm.ready():
+            retval = await self.bot.sqfvm.call_sqf_async(code)
+        else:
+            retval = "SQF-VM not ready. Try again later"
+        return retval
 
     def escape_markdown(self, text):
         prefix = '```sqf\n'
