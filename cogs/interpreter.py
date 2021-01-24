@@ -92,7 +92,7 @@ class SQFVMWrapper:
         def callback(user_data, call_data, severity, message, length):
             data_out.append(message.decode('utf8'))
 
-        if not self.libsqfvm:
+        if not self.ready():
             return 'Error, SQFVM not loaded correctly'
 
         code_bytes = code.encode('utf-8')
@@ -114,7 +114,11 @@ class Interpreter(commands.Cog):
         self.interpreter_enabled = True
         # Store the wrapper in the bot namespace to be able to access it from other cogs
         self.bot.sqfvm = SQFVMWrapper(settings.SQFVM_LIB_PATH)
-        self.bot.sqfvm.load()
+        try:
+            self.bot.sqfvm.load()
+        except:
+            # Continue working because you can later call "!rebuild" to get SQFvm working again
+            logger.exception('Could not load SQFvm!')
 
     async def execute_sqf(self, code):
         retval = await self.bot.sqfvm.call_sqf_async(code)
