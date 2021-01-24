@@ -2,6 +2,7 @@ import _ctypes
 import asyncio
 import ctypes
 import logging
+import platform
 from ctypes import CDLL
 
 import discord
@@ -10,6 +11,13 @@ from discord.ext import commands
 import settings
 
 logger = logging.getLogger('discord.' + __name__)
+
+
+def unload_dll(dll):
+    if platform.system() == 'Windows':
+        _ctypes.FreeLibrary(dll._handle)
+    else:
+        _ctypes.dlclose(dll._handle)
 
 
 class SQFVMWrapper:
@@ -23,7 +31,7 @@ class SQFVMWrapper:
 
     def unload(self):
         if self.libsqfvm:
-            _ctypes.dlclose(self.libsqfvm._handle)  # TODO: Test if this works
+            unload_dll(self.libsqfvm)
             self.libsqfvm = None
 
     def load(self):
