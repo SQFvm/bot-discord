@@ -1,0 +1,8 @@
+*.pyc
+*.pyo
+.idea
+*.sqlite3
+settings/local.py
+static
+discord.log
+*.vscode
