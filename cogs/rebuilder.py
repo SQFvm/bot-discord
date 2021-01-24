@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import platform
 import subprocess
 
 from discord.ext import commands
@@ -48,7 +49,14 @@ class Rebuilder(commands.Cog):
         subprocess.run(['cmake', '.'], check=True, cwd=settings.VMPATH, env=new_env)
 
     def build_sqfvm(self):
-        subprocess.run(['make', 'libcsqfvm', '-j', '6'], check=True, cwd=settings.VMPATH)
+        command =['cmake', '--build', '.', '--target', 'libcsqfvm']
+
+        # msbuild on Windows is already doing parallel building
+        # and adding the "parallel" switch actually PREVENTS from doing that
+        if platform.system() == 'Linux':
+            command.extend(['--parallel', '6'])
+
+        subprocess.run(command, check=True, cwd=settings.VMPATH)
 
 
     @commands.command()
@@ -104,6 +112,7 @@ class Rebuilder(commands.Cog):
         except Exception as e:
             logger.exception('%s', e)
             await message.edit(content=progress.next_state('Error: ' + str(e)))
+            await ctx.channel.send('SQFvm has NOT been rebuilt correctly!')
         else:
             await ctx.channel.send('SQFvm has been rebuilt!')
 
