@@ -71,36 +71,42 @@ class Rebuilder(commands.Cog):
                 return False
             return True
 
-        async with ctx.typing():
-            message = await ctx.channel.send(progress.next_state('Unloading SQFvm...'))
-            self.bot.sqfvm.unload()
+        message = await ctx.channel.send(progress.next_state('Unloading SQFvm...'))
 
-            # git pull
-            if not await _run_asynchronously('Pulling changes...', self.git_pull):
-                return
+        try:
+            async with ctx.typing():
+                self.bot.sqfvm.unload()
 
-            # rm CMakeCache.txt
-            await message.edit(content=progress.next_state('Deleting CmakeCache.txt'))
-            try:
-                os.remove(os.path.join(settings.VMPATH, 'CMakeCache.txt'))
-            except FileNotFoundError:
-                pass
+                # git pull
+                if not await _run_asynchronously('Pulling changes...', self.git_pull):
+                    return
 
-            # cmake .
-            if not await _run_asynchronously('Running cmake...', self.call_cmake):
-                return
+                # rm CMakeCache.txt
+                await message.edit(content=progress.next_state('Deleting CmakeCache.txt'))
+                try:
+                    os.remove(os.path.join(settings.VMPATH, 'CMakeCache.txt'))
+                except FileNotFoundError:
+                    pass
 
-            # make libsqfvm
-            if not await _run_asynchronously('Building...', self.build_sqfvm):
-                return
+                # cmake .
+                if not await _run_asynchronously('Running cmake...', self.call_cmake):
+                    return
 
-            await message.edit(content=progress.next_state('Loading SQFvm...'))
-            self.bot.sqfvm.load()
+                # make libsqfvm
+                if not await _run_asynchronously('Building...', self.build_sqfvm):
+                    return
 
-            if self.bot.sqfvm.ready():
-                await message.edit(content=progress.next_state('SQFvm is ready!'))
+                await message.edit(content=progress.next_state('Loading SQFvm...'))
+                self.bot.sqfvm.load()
 
-        await ctx.channel.send('SQFvm has been rebuilt!')
+                if self.bot.sqfvm.ready():
+                    await message.edit(content=progress.next_state('SQFvm is ready!'))
+
+        except Exception as e:
+            logger.exception('%s', e)
+            await message.edit(content=progress.next_state('Error: ' + str(e)))
+        else:
+            await ctx.channel.send('SQFvm has been rebuilt!')
 
 
 def setup(bot):
