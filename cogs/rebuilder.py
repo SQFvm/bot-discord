@@ -46,7 +46,6 @@ class Rebuilder(commands.Cog):
     def call_cmake(self):
         new_env = dict(os.environ, **settings.BUILD_ENV)  # Add envs just for this command
         subprocess.run(['cmake', '.'], check=True, cwd=settings.VMPATH, env=new_env)
-        subprocess.run(['make', 'clean'], check=True, cwd=settings.VMPATH, env=new_env)
 
     def build_sqfvm(self):
         subprocess.run(['make', 'libcsqfvm', '-j', '6'], check=True, cwd=settings.VMPATH)
