@@ -12,4 +12,6 @@ SQF_BOT = {
 #     'CXX':'g++-8',
 # }
 
-# SQFVM_LIB_PATH = os.path.join(VMPATH, 'Debug', 'libcsqfvm.dll')
+# import platform
+# if platform.system() == 'Windows':
+#     SQFVM_LIB_PATH = os.path.join(VMPATH, 'Debug', 'libcsqfvm.dll')
