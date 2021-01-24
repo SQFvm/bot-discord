@@ -72,8 +72,8 @@ class Rebuilder(commands.Cog):
             return True
 
         async with ctx.typing():
-            # TODO: disable SQFvm
             message = await ctx.channel.send(progress.next_state('Unloading SQFvm...'))
+            self.bot.sqfvm.unload()
 
             # git pull
             if not await _run_asynchronously('Pulling changes...', self.git_pull):
@@ -94,8 +94,11 @@ class Rebuilder(commands.Cog):
             if not await _run_asynchronously('Building...', self.build_sqfvm):
                 return
 
-            # TODO: Reload everything
             await message.edit(content=progress.next_state('Loading SQFvm...'))
+            self.bot.sqfvm.load()
+
+            if self.bot.sqfvm.ready():
+                await message.edit(content=progress.next_state('SQFvm is ready!'))
 
         await ctx.channel.send('SQFvm has been rebuilt!')
 

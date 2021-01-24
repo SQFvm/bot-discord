@@ -18,6 +18,9 @@ class SQFVMWrapper:
         self.libsqfvm = None
         self.lock = asyncio.Lock()
 
+    def ready(self):
+        return self.libsqfvm is not None
+
     def unload(self):
         if self.libsqfvm:
             _ctypes.dlclose(self.libsqfvm._handle)  # TODO: Test if this works
@@ -101,11 +104,12 @@ class Interpreter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.interpreter_enabled = True
-        self.sqfvm = SQFVMWrapper(settings.SQFVM_LIB_PATH)
-        self.sqfvm.load()
+        # Store the wrapper in the bot namespace to be able to access it from other cogs
+        self.bot.sqfvm = SQFVMWrapper(settings.SQFVM_LIB_PATH)
+        self.bot.sqfvm.load()
 
     async def execute_sqf(self, code):
-        retval = await self.sqfvm.call_sqf_async(code)
+        retval = await self.bot.sqfvm.call_sqf_async(code)
         return str(retval)
 
     def escape_markdown(self, text):
