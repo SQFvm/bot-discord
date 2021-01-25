@@ -28,6 +28,13 @@ class Interpreter(commands.Cog):
             retval = "SQF-VM not ready. Try again later"
         return retval
 
+    async def execute_sqc(self, code):
+        if self.bot.sqfvm.ready():
+            retval = await self.bot.sqfvm.call_sqc_async(code)
+        else:
+            retval = "SQF-VM not ready. Try again later"
+        return retval
+
     def escape_markdown(self, text):
         prefix = '```sqf\n'
         suffix = '```'
@@ -46,13 +53,13 @@ class Interpreter(commands.Cog):
     def strip_mentions_and_markdown(self, message, strip_command_marker=False):
         content = message.content.strip()
 
-        if strip_command_marker and content.startswith('!sqf'):
+        if strip_command_marker and (content.startswith('!sqf') or content.startswith('!sqc')):
             content = content[5:]
 
         if self.bot.user.id in message.raw_mentions:
             content = content.replace('<@!{}>'.format(self.bot.user.id), '')
 
-        if content.startswith('```sqf') and content.endswith('```'):
+        if (content.startswith('```sqf') or content.startswith('```sqc')) and content.endswith('```'):
             content = content[6:-3]
 
         return content
@@ -71,8 +78,25 @@ class Interpreter(commands.Cog):
         code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
 
         async with ctx.typing():
-            sqf_result = await self.execute_sqf(code_to_execute)
-        await ctx.channel.send(self.escape_markdown(sqf_result))
+            result = await self.execute_sqf(code_to_execute)
+        await ctx.channel.send(self.escape_markdown(result))
+
+    @commands.command()
+    async def sqc(self, ctx):
+        """
+        Execute SQC code and return the resulting value
+
+        Alternatively, for the same effect you can also:
+        - Mention the bot, when pasting your code
+        - Write a DM to the bot
+        - Enclose your message in an ``'sqc block
+          if the channel name starts with "sqc"
+        """
+        code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
+
+        async with ctx.typing():
+            result = await self.execute_sqc(code_to_execute)
+        await ctx.channel.send(self.escape_markdown(result))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -95,6 +119,7 @@ class Interpreter(commands.Cog):
             return
 
         code_to_execute = None
+        function_to_execute = self.execute_sqf  # Default
 
         if self.bot.user.id in message.raw_mentions:
             code_to_execute = self.strip_mentions_and_markdown(message)
@@ -102,12 +127,18 @@ class Interpreter(commands.Cog):
         elif type(message.channel) is discord.DMChannel:  # Always interpret when DM
             code_to_execute = self.strip_mentions_and_markdown(message)
 
-        elif message.channel.name.startswith('sqf') and message.content.startswith('```sqf'):
-            code_to_execute = self.strip_mentions_and_markdown(message)
+        # Don't use elif here because the ```sqX may override the language type to execute
+        if message.channel.name.startswith('sqf') or message.channel.name.startswith('sqc'):
+            if message.content.startswith('```sqf'):
+                code_to_execute = self.strip_mentions_and_markdown(message)
+                function_to_execute = self.execute_sqf
+            elif message.content.startswith('```sqc'):
+                code_to_execute = self.strip_mentions_and_markdown(message)
+                function_to_execute = self.execute_sqc
 
         if code_to_execute:
             async with message.channel.typing():
-                sqf_result = await self.execute_sqf(code_to_execute)
+                sqf_result = await function_to_execute(code_to_execute)
             await message.channel.send(self.escape_markdown(sqf_result))
 
 

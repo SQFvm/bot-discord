@@ -58,7 +58,6 @@ class Rebuilder(commands.Cog):
 
         subprocess.run(command, check=True, cwd=settings.VMPATH)
 
-
     @commands.command()
     @checks.only_admins()
     async def rebuild(self, ctx):

@@ -102,7 +102,7 @@ class SQFVMWrapper:
 
         return message
 
-    def call_sqf(self, code: str, timeout=10):
+    def call_type(self, code: str, timeout=10, type=ord('s')):
         data_out = []
 
         # FIXME: Find an easy way for this to simply be a method class instead of using a closure
@@ -121,7 +121,7 @@ class SQFVMWrapper:
         if not instance:
             return 'Error: SQF-VM could not create an instance'
 
-        retval = self._sqfvm_call(instance, None, ord('s'), code_bytes, len(code_bytes))
+        retval = self._sqfvm_call(instance, None, type, code_bytes, len(code_bytes))
 
         self._sqfvm_destroy_instance(instance)
 
@@ -130,6 +130,16 @@ class SQFVMWrapper:
 
         return '\n'.join(data_out)
 
+    def call_sqf(self, code: str, timeout=10):
+        return self.call_type(code=code, timeout=timeout, type=ord('s'))
+
+    def call_sqc(self, code: str, timeout=10):
+        return self.call_type(code=code, timeout=timeout, type=ord('c'))
+
     async def call_sqf_async(self, code: str, timeout=10):
         async with self.lock:
             return await asyncio.get_event_loop().run_in_executor(None, self.call_sqf, code, timeout)
+
+    async def call_sqc_async(self, code: str, timeout=10):
+        async with self.lock:
+            return await asyncio.get_event_loop().run_in_executor(None, self.call_sqc, code, timeout)
