@@ -35,7 +35,8 @@ class Interpreter(commands.Cog):
             retval = "SQF-VM not ready. Try again later"
         return retval
 
-    def escape_markdown(self, text):
+    @staticmethod
+    def escape_markdown(text):
         prefix = '```sqf\n'
         suffix = '```'
         ellipsis = '(...)'
@@ -45,7 +46,8 @@ class Interpreter(commands.Cog):
 
         retval = '{}{}{}'.format(prefix, text, suffix)
         if len(retval) > 2000:
-            text = text[:2000 - len(ellipsis)] + ellipsis  # "longtexthere" -> "longte(...)"
+            allowed_length = 2000 - len(ellipsis) - len(prefix) - len(suffix)
+            text = text[:allowed_length] + ellipsis  # "longtexthere" -> "longte(...)"
             retval = '{}{}{}'.format(prefix, text, suffix)
 
         return retval
