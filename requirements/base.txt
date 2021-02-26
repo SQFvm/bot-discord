@@ -4,7 +4,7 @@
 #
 #    pip-compile 'requirements\base.in'
 #
-aiohttp==3.6.2
+aiohttp==3.7.4
     # via discord.py
 async-timeout==3.0.1
     # via aiohttp
@@ -13,7 +13,7 @@ attrs==20.3.0
 chardet==3.0.4
     # via aiohttp
 discord.py==1.6.0
-    # via -r requirements\base.in
+    # via -r base.in
 idna==3.1
     # via yarl
 multidict==4.7.6
@@ -21,6 +21,6 @@ multidict==4.7.6
     #   aiohttp
     #   yarl
 typing-extensions==3.7.4.3
-    # via yarl
+    # via aiohttp
 yarl==1.6.3
     # via aiohttp
