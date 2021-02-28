@@ -11,6 +11,7 @@ class SQFBot(BotBase):
         'cogs.rebuilder',
         'cogs.restart',
         'cogs.interpreter',
+        'cogs.wiki',
     ]
 
     def __init__(self, bot_data):

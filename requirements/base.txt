@@ -5,22 +5,36 @@
 #    pip-compile 'requirements\base.in'
 #
 aiohttp==3.7.4
-    # via discord.py
+    # via
+    #   -r requirements\base.in
+    #   discord.py
 async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
     # via aiohttp
+beautifulsoup4==4.9.3
+    # via -r requirements\base.in
 chardet==3.0.4
     # via aiohttp
 discord.py==1.6.0
-    # via -r base.in
+    # via -r requirements\base.in
 idna==3.1
     # via yarl
 multidict==4.7.6
     # via
     #   aiohttp
     #   yarl
+regex==2020.11.13
+    # via wikitextparser
+soupsieve==2.2
+    # via beautifulsoup4
 typing-extensions==3.7.4.3
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   yarl
+wcwidth==0.2.5
+    # via wikitextparser
+wikitextparser==0.47.0
+    # via -r requirements\base.in
 yarl==1.6.3
     # via aiohttp
