@@ -62,6 +62,28 @@ class Wiki(commands.Cog):
 
         embed = discord.Embed(title=name, url=f'https://community.bistudio.com/{command_url_part}',
                               description=sqf_command.description)
+
+        await ctx.channel.send(embed=embed)
+
+    @command.error
+    async def command_error(self, ctx, error):
+        await ctx.channel.send(error)
+
+    @commands.command()
+    async def command_full(self, ctx, name: str):
+        try:
+            command_url_part = self.commands[name]
+        except KeyError:
+            await ctx.channel.send('Unknown command!')
+            return
+
+        async with ctx.typing():
+            page_contents = await get_page(command_url_part.replace('/wiki/', ''))
+            template = parse_mediawiki_textarea(page_contents)
+            sqf_command = SQFCommand(name, template)
+
+        embed = discord.Embed(title=name, url=f'https://community.bistudio.com/{command_url_part}',
+                              description=sqf_command.description)
         # embed.set_author(name=sqf_command.type)#, url="asd", icon_url="asd")
 
         self.add_syntax_field(embed, sqf_command.syntax, sqf_command.parameters, sqf_command.return_value)
@@ -69,16 +91,16 @@ class Wiki(commands.Cog):
                 sqf_command.alt_syntax, sqf_command.alt_parameters, sqf_command.alt_return_value):
             self.add_syntax_field(embed, syntax, parameters, return_value)
 
-        # for i, example in enumerate(sqf_command.examples):
-        #     embed.add_field(name='Example:' if i == 0 else f'Example {i + 1}:',
-        #                     value=escape_markdown(example, 'sqf'),
-        #                     inline=False)
+        for i, example in enumerate(sqf_command.examples):
+            embed.add_field(name='Example:' if i == 0 else f'Example {i + 1}:',
+                            value=escape_markdown(example, 'sqf'),
+                            inline=False)
 
-        # embed.set_footer(text=f'See also: {sqf_command.see_also}\nGroups: {",".join(sqf_command.command_groups)}')
+        embed.set_footer(text=f'See also: {sqf_command.see_also}\nGroups: {",".join(sqf_command.command_groups)}')
         await ctx.channel.send(embed=embed)
 
     @command.error
-    async def command_error(self, ctx, error):
+    async def command_full_error(self, ctx, error):
         await ctx.channel.send(error)
 
 
