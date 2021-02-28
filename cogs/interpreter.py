@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 import settings
+from modules.discord_utils import escape_markdown
 from sqfvm_wrapper import SQFVMWrapper
 
 logger = logging.getLogger('discord.' + __name__)
@@ -35,23 +36,6 @@ class Interpreter(commands.Cog):
             retval = "SQF-VM not ready. Try again later"
         return retval
 
-    @staticmethod
-    def escape_markdown(text):
-        prefix = '```sqf\n'
-        suffix = '```'
-        ellipsis = '(...)'
-
-        if text == '':
-            return '```\n```'  # Otherwise, Discord treats "sqf" as the message contents
-
-        retval = '{}{}{}'.format(prefix, text, suffix)
-        if len(retval) > 2000:
-            allowed_length = 2000 - len(ellipsis) - len(prefix) - len(suffix)
-            text = text[:allowed_length] + ellipsis  # "longtexthere" -> "longte(...)"
-            retval = '{}{}{}'.format(prefix, text, suffix)
-
-        return retval
-
     def strip_mentions_and_markdown(self, message, strip_command_marker=False):
         content = message.content.strip()
 
@@ -81,7 +65,7 @@ class Interpreter(commands.Cog):
 
         async with ctx.typing():
             result = await self.execute_sqf(code_to_execute)
-        await ctx.channel.send(self.escape_markdown(result))
+        await ctx.channel.send(escape_markdown(result, language='sqf'))
 
     @commands.command()
     async def sqc(self, ctx):
@@ -98,7 +82,7 @@ class Interpreter(commands.Cog):
 
         async with ctx.typing():
             result = await self.execute_sqc(code_to_execute)
-        await ctx.channel.send(self.escape_markdown(result))
+        await ctx.channel.send(escape_markdown(result, language='sqf'))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -141,7 +125,7 @@ class Interpreter(commands.Cog):
         if code_to_execute:
             async with message.channel.typing():
                 sqf_result = await function_to_execute(code_to_execute)
-            await message.channel.send(self.escape_markdown(sqf_result))
+            await message.channel.send(escape_markdown(sqf_result, language='sqf'))
 
 
 def setup(bot):
