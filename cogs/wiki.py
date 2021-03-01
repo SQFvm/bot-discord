@@ -48,7 +48,7 @@ class Wiki(commands.Cog):
                         inline=False)
 
     @commands.command()
-    async def command(self, ctx, name: str):
+    async def biki(self, ctx, name: str):
         try:
             command_url_part = self.commands[name]
         except KeyError:
@@ -65,12 +65,12 @@ class Wiki(commands.Cog):
 
         await ctx.channel.send(embed=embed)
 
-    @command.error
-    async def command_error(self, ctx, error):
+    @biki.error
+    async def biki_error(self, ctx, error):
         await ctx.channel.send(error)
 
     @commands.command()
-    async def command_full(self, ctx, name: str):
+    async def biki_full(self, ctx, name: str):
         try:
             command_url_part = self.commands[name]
         except KeyError:
@@ -99,8 +99,8 @@ class Wiki(commands.Cog):
         embed.set_footer(text=f'See also: {sqf_command.see_also}\nGroups: {",".join(sqf_command.command_groups)}')
         await ctx.channel.send(embed=embed)
 
-    @command.error
-    async def command_full_error(self, ctx, error):
+    @biki.error
+    async def biki_full_error(self, ctx, error):
         await ctx.channel.send(error)
 
 
