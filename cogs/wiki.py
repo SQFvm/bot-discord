@@ -49,6 +49,9 @@ class Wiki(commands.Cog):
 
     @commands.command()
     async def biki(self, ctx, name: str):
+        """
+        Get the description of a command from the Biki
+        """
         try:
             command_url_part = self.commands[name]
         except KeyError:
@@ -69,8 +72,7 @@ class Wiki(commands.Cog):
     async def biki_error(self, ctx, error):
         await ctx.channel.send(error)
 
-    @commands.command()
-    async def biki_full(self, ctx, name: str):
+    async def _biki_full(self, ctx, name: str, to_sqc=False):
         try:
             command_url_part = self.commands[name]
         except KeyError:
@@ -91,7 +93,11 @@ class Wiki(commands.Cog):
                 sqf_command.alt_syntax, sqf_command.alt_parameters, sqf_command.alt_return_value):
             self.add_syntax_field(embed, syntax, parameters, return_value)
 
+        interpreter = self.bot.get_cog('Interpreter')
+
         for i, example in enumerate(sqf_command.examples):
+            if interpreter and to_sqc:
+                example = await interpreter.execute_sqf2sqc(example)
             embed.add_field(name='Example:' if i == 0 else f'Example {i + 1}:',
                             value=escape_markdown(example, 'sqf'),
                             inline=False)
@@ -99,8 +105,26 @@ class Wiki(commands.Cog):
         embed.set_footer(text=f'See also: {sqf_command.see_also}\nGroups: {",".join(sqf_command.command_groups)}')
         await ctx.channel.send(embed=embed)
 
-    @biki.error
+    @commands.command()
+    async def biki_full(self, ctx, name: str):
+        """
+        Get the full page of a command from the Biki
+        """
+        await self._biki_full(ctx, name)
+
+    @biki_full.error
     async def biki_full_error(self, ctx, error):
+        await ctx.channel.send(error)
+
+    @commands.command()
+    async def biki_sqc(self, ctx, name: str):
+        """
+        Get the full page of a command from the Biki for SQC
+        """
+        await self._biki_full(ctx, name, to_sqc=True)
+
+    @biki_sqc.error
+    async def biki_sqc_error(self, ctx, error):
         await ctx.channel.send(error)
 
 
