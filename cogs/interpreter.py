@@ -43,6 +43,20 @@ class Interpreter(commands.Cog):
             retval = "SQF-VM not ready. Try again later"
         return retval
 
+    async def execute_assembly(self, code):
+        if self.bot.sqfvm.ready():
+            retval = await self.bot.sqfvm.call_assembly_async(code)
+        else:
+            retval = "SQF-VM not ready. Try again later"
+        return retval
+
+    async def execute_preprocess(self, code):
+        if self.bot.sqfvm.ready():
+            retval = await self.bot.sqfvm.call_preprocess_async(code)
+        else:
+            retval = "SQF-VM not ready. Try again later"
+        return retval
+
     def strip_mentions_and_markdown(self, message, strip_command_marker=False):
         content = message.content.strip()
 
@@ -51,6 +65,10 @@ class Interpreter(commands.Cog):
                 content = content[9:]
             elif content.startswith('!sqf') or content.startswith('!sqc'):
                 content = content[5:]
+            elif content.startswith('!assembly'):
+                content = content[10:]
+            elif content.startswith('!preprocess'):
+                content = content[12:]
 
         if self.bot.user.id in message.raw_mentions:
             content = content.replace('<@!{}>'.format(self.bot.user.id), '')
@@ -59,6 +77,10 @@ class Interpreter(commands.Cog):
             content = content[10:-3]
         elif (content.startswith('```sqf') or content.startswith('```sqc')) and content.endswith('```'):
             content = content[6:-3]
+        elif content.startswith('```assembly') and content.endswith('```'):
+            content = content[11:-3]
+        elif content.startswith('```preprocess') and content.endswith('```'):
+            content = content[13:-3]
 
         return content
 
@@ -113,6 +135,38 @@ class Interpreter(commands.Cog):
             result = await self.execute_sqf2sqc(code_to_execute)
         await ctx.channel.send(escape_markdown(result, language='sqf'))
 
+    @commands.command()
+    async def assembly(self, ctx):
+        """
+        Execute SQF assembly and return the resulting value
+
+        Alternatively, for the same effect you can also:
+        - Write a DM to the bot
+        - Enclose your message in an ``'assembly block
+          if the channel name starts with "sqf" or "sqc"
+        """
+        code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
+
+        async with ctx.typing():
+            result = await self.execute_assembly(code_to_execute)
+        await ctx.channel.send(escape_markdown(result, language='sqf'))
+
+    @commands.command()
+    async def preprocess(self, ctx):
+        """
+        Preprocess code and return the result
+
+        Alternatively, for the same effect you can also:
+        - Write a DM to the bot
+        - Enclose your message in an ``'preprocess block
+          if the channel name starts with "sqf" or "sqc"
+        """
+        code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
+
+        async with ctx.typing():
+            result = await self.execute_preprocess(code_to_execute)
+        await ctx.channel.send(escape_markdown(result, language='sqf'))
+
     @commands.Cog.listener()
     async def on_message(self, message):
         """
@@ -153,6 +207,12 @@ class Interpreter(commands.Cog):
             elif message.content.startswith('```sqc'):
                 code_to_execute = self.strip_mentions_and_markdown(message)
                 function_to_execute = self.execute_sqc
+            elif message.content.startswith('```assembly'):
+                code_to_execute = self.strip_mentions_and_markdown(message)
+                function_to_execute = self.execute_assembly
+            elif message.content.startswith('```preprocess'):
+                code_to_execute = self.strip_mentions_and_markdown(message)
+                function_to_execute = self.execute_preprocess
 
         if code_to_execute:
             async with message.channel.typing():

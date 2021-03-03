@@ -139,6 +139,12 @@ class SQFVMWrapper:
     def call_sqf2sqc(self, code: str, timeout=10):
         return self.call_type(code=code, timeout=timeout, type=ord('1'))
 
+    def call_assembly(self, code: str, timeout=10):
+        return self.call_type(code=code, timeout=timeout, type=ord('a'))
+
+    def call_preprocess(self, code: str, timeout=10):
+        return self.call_type(code=code, timeout=timeout, type=ord('p'))
+
     async def call_sqf_async(self, code: str, timeout=10):
         async with self.lock:
             return await asyncio.get_event_loop().run_in_executor(None, self.call_sqf, code, timeout)
@@ -150,3 +156,11 @@ class SQFVMWrapper:
     async def call_sqf2sqc_async(self, code: str, timeout=10):
         async with self.lock:
             return await asyncio.get_event_loop().run_in_executor(None, self.call_sqf2sqc, code, timeout)
+
+    async def call_assembly_async(self, code: str, timeout=10):
+        async with self.lock:
+            return await asyncio.get_event_loop().run_in_executor(None, self.call_assembly, code, timeout)
+
+    async def call_preprocess_async(self, code: str, timeout=10):
+        async with self.lock:
+            return await asyncio.get_event_loop().run_in_executor(None, self.call_preprocess, code, timeout)
