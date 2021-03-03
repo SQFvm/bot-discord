@@ -36,16 +36,28 @@ class Interpreter(commands.Cog):
             retval = "SQF-VM not ready. Try again later"
         return retval
 
+    async def execute_sqf2sqc(self, code):
+        if self.bot.sqfvm.ready():
+            retval = await self.bot.sqfvm.call_sqf2sqc_async(code)
+        else:
+            retval = "SQF-VM not ready. Try again later"
+        return retval
+
     def strip_mentions_and_markdown(self, message, strip_command_marker=False):
         content = message.content.strip()
 
-        if strip_command_marker and (content.startswith('!sqf') or content.startswith('!sqc')):
-            content = content[5:]
+        if strip_command_marker:
+            if content.startswith('!sqf2sqc'):
+                content = content[9:]
+            elif content.startswith('!sqf') or content.startswith('!sqc'):
+                content = content[5:]
 
         if self.bot.user.id in message.raw_mentions:
             content = content.replace('<@!{}>'.format(self.bot.user.id), '')
 
-        if (content.startswith('```sqf') or content.startswith('```sqc')) and content.endswith('```'):
+        if content.startswith('```sqf2sqc') and content.endswith('```'):
+            content = content[10:-3]
+        elif (content.startswith('```sqf') or content.startswith('```sqc')) and content.endswith('```'):
             content = content[6:-3]
 
         return content
@@ -59,7 +71,7 @@ class Interpreter(commands.Cog):
         - Mention the bot, when pasting your code
         - Write a DM to the bot
         - Enclose your message in an ``'sqf block
-          if the channel name starts with "sqf"
+          if the channel name starts with "sqf" or "sqc"
         """
         code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
 
@@ -76,12 +88,29 @@ class Interpreter(commands.Cog):
         - Mention the bot, when pasting your code
         - Write a DM to the bot
         - Enclose your message in an ``'sqc block
-          if the channel name starts with "sqc"
+          if the channel name starts with "sqf" or "sqc"
         """
         code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
 
         async with ctx.typing():
             result = await self.execute_sqc(code_to_execute)
+        await ctx.channel.send(escape_markdown(result, language='sqf'))
+
+    @commands.command()
+    async def sqf2sqc(self, ctx):
+        """
+        Parse SQF and transpile the code to SQC
+
+        Alternatively, for the same effect you can also:
+        - Mention the bot, when pasting your code
+        - Write a DM to the bot
+        - Enclose your message in an ``'sqf2sqc block
+          if the channel name starts with "sqf" or "sqc"
+        """
+        code_to_execute = self.strip_mentions_and_markdown(ctx.message, strip_command_marker=True)
+
+        async with ctx.typing():
+            result = await self.execute_sqf2sqc(code_to_execute)
         await ctx.channel.send(escape_markdown(result, language='sqf'))
 
     @commands.Cog.listener()
@@ -115,7 +144,10 @@ class Interpreter(commands.Cog):
 
         # Don't use elif here because the ```sqX may override the language type to execute
         if message.channel.name.startswith('sqf') or message.channel.name.startswith('sqc'):
-            if message.content.startswith('```sqf'):
+            if message.content.startswith('```sqf2sqc'):
+                code_to_execute = self.strip_mentions_and_markdown(message)
+                function_to_execute = self.execute_sqf2sqc
+            elif message.content.startswith('```sqf'):
                 code_to_execute = self.strip_mentions_and_markdown(message)
                 function_to_execute = self.execute_sqf
             elif message.content.startswith('```sqc'):
