@@ -2,4 +2,4 @@
 
 # Add things you need here, just for development
 pip-tools==5.5.0
-ipython==7.0.0
+ipython==7.16.3
