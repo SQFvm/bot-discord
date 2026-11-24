@@ -1,19 +1,14 @@
-#!/bin/bash
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
 
-branch=master
-remote_branch="origin/${branch}"
-python=python
-
-while true
-do
-  # Note: this is the 100% correct way of safely updating a repository
-  git reset --hard
-  git fetch --all
-  git checkout "${branch}"
-  git reset --hard "${remote_branch}"
-  git pull
-  "${python}" -m pip install -r "`dirname $0`/requirements/base.txt"
-  "${python}" "`dirname $0`/main.py"
-
-  sleep 5
+while true; do
+    git pull --ff-only || echo "Update failed. Starting from the current checkout." >&2
+    status=0
+    cargo run --locked --release || status=$?
+    case "$status" in
+        0|130|143) exit 0 ;;
+        75) continue ;; # Admin requested a restart.
+        *) sleep 5 ;;
+    esac
 done

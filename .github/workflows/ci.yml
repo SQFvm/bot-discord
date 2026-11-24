@@ -1,0 +1,109 @@
+name: Build and release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RUSTUP_TOOLCHAIN: 1.88.0
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component rustfmt --component clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: sh -n start_production.sh
+
+  build:
+    name: Test and package ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux-x64
+            binary: sqf-discord
+            library: target/sqfvm/libsqfvm.so
+          - os: windows-2025
+            platform: windows-x64
+            binary: sqf-discord.exe
+            library: target/sqfvm/Release/libsqfvm.dll
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out SQF-VM
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: SQFvm/runtime
+          ref: ed9f5f58a991ed00ff59858e68e01ffcaab89e04
+          path: target/runtime-source
+          persist-credentials: false
+      - name: Build the SQC-enabled runtime
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then export CC=clang CXX=clang++; fi
+          cmake -S target/runtime-source -B target/sqfvm -DCMAKE_BUILD_TYPE=Release -DSQFVM_ENABLE_SQC_SUPPORT=ON
+          cmake --build target/sqfvm --config Release --target libsqfvm --parallel 2
+      - run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal
+      - run: cargo build --workspace --release --locked
+      - run: cargo test --workspace --release --locked
+      - name: Test the native bindings
+        env:
+          SQFVM_LIB_PATH: ${{ github.workspace }}/${{ matrix.library }}
+        run: cargo test --release --locked -p sqfvm --test native -- --ignored --exact native_api
+      - name: Package and smoke-test the extracted bot
+        env:
+          BINARY: ${{ matrix.binary }}
+          LIBRARY: ${{ matrix.library }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          mkdir -p package/target/sqfvm dist
+          cp "target/release/$BINARY" README.md LICENSE package/
+          cp target/runtime-source/LICENSE package/SQF-VM-LICENSE
+          cp "$LIBRARY" package/target/sqfvm/
+          archive="dist/sqf-discord-$PLATFORM.tar.gz"
+          tar -czf "$archive" -C package .
+          mkdir smoke
+          tar -xzf "$archive" -C smoke
+          cd smoke
+          result=$(printf '6 * 7;' | "./$BINARY" --eval sqc)
+          [[ "$result" == *'return value `42`'* ]]
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sqf-discord-${{ matrix.platform }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [lint, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: sqf-discord-*
+          path: dist
+          merge-multiple: true
+      - name: Publish the tested archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes \
+            dist/sqf-discord-linux-x64.tar.gz dist/sqf-discord-windows-x64.tar.gz

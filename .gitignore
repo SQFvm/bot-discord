@@ -6,3 +6,4 @@ settings/local.py
 static
 discord.log
 *.vscode
+/target/
